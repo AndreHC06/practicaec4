@@ -55,6 +55,27 @@ public class CountryController {
                 .build();
     }
 
+    @GET
+    @Path("/findByName/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCountryByName(@PathParam("name") String name) {
+        Country country = countryRepository.findByName(name);
+        if (country != null) {
+            try {
+                String json = objectMapper.writeValueAsString(country);
+                return Response.ok(json, MediaType.APPLICATION_JSON).build();
+            } catch (JsonProcessingException e) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("Error al convertir a JSON")
+                        .build();
+            }
+        }
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("{\"message\":\"Pais no encontrado\"}")
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -62,12 +83,12 @@ public class CountryController {
     public Response updateCountry(@PathParam("id") Long id, String json) {
         try {
             Country countryUpdate = objectMapper.readValue(json, Country.class);
-            Country countrie = countryRepository.findById(id).orElse(null);
-            if (countrie != null) {
-                countrie.setCountryName(countryUpdate.getCountryName());
-                countrie.setCountryContinent(countryUpdate.getCountryContinent());
-                countrie.setCountryLanguage(countryUpdate.getCountryLanguage());
-                countryRepository.save(countrie);
+            Country country = countryRepository.findById(id).orElse(null);
+            if (country != null) {
+                country.setName(countryUpdate.getName());
+                country.setContinent(countryUpdate.getContinent());
+                country.setLanguage(countryUpdate.getLanguage());
+                countryRepository.save(country);
                 String responseMessage = "{\"message\":\"Pais actualizado correctamente\"}";
                 return Response.status(Response.Status.OK)
                         .entity(responseMessage)
